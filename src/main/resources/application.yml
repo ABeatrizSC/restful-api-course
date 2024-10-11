@@ -15,3 +15,9 @@ spring:
         # hibernate:
       # dialect: org.hibernate.dialect.MySQLDialect
     show-sql: false
+  springdoc:
+    swagger-ui:
+      path: /docs-restful-api-aws.html
+    api-docs:
+      path: /docs-restful-api-aws.html
+    packagesToScan: com.example.api.controllers

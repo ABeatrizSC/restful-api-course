@@ -2,6 +2,7 @@ package com.example.api.services;
 
 import com.example.api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,7 +28,11 @@ public class UserServices implements UserDetailsService {
         logger.info("Finding one user by name " + username + "!");
         var user = repository.findByUsername(username);
         if (user != null){
-            return user;
+            return new User(
+                    user.getUsername(),
+                    user.getPassword(),
+                    user.getAuthorities() // metodo que retorna as permissões (roles)
+            );
         } else {
             throw new UsernameNotFoundException("Username " + username + " not found!");
         }

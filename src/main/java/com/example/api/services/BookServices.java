@@ -1,13 +1,20 @@
 package com.example.api.services;
 
 import com.example.api.controllers.BookController;
+import com.example.api.controllers.PersonController;
 import com.example.api.data.vo.v1.BookVO;
+import com.example.api.data.vo.v1.PersonVO;
 import com.example.api.exceptions.RequiredObjectIsNullException;
 import com.example.api.exceptions.ResourceNotFoundException;
 import com.example.api.mapper.custom.DozerMapper;
 import com.example.api.model.Book;
 import com.example.api.repositories.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,15 +31,28 @@ public class BookServices {
     @Autowired
     BookRepository repository;
 
-    public List<BookVO> findAll() {
+    @Autowired
+    PagedResourcesAssembler<PersonVO> assembler;
 
-        logger.info("Finding all book!");
+    public PagedModel<EntityModel<PersonVO>> findAll(Pageable pageable) {
 
-        var books = DozerMapper.parseListObjects(repository.findAll(), BookVO.class);
-        books
-                .stream()
-                .forEach(p -> p.add(linkTo(methodOn(BookController.class).findById(p.getKey())).withSelfRel()));
-        return books;
+        logger.info("Finding all people!");
+
+        var personPage = repository.findAll(pageable);
+
+        var personVosPage = personPage.map(p -> DozerMapper.parseObject(p, PersonVO.class));
+        personVosPage.map(
+                p -> p.add(
+                        linkTo(methodOn(PersonController.class)
+                                .findById(p.getKey())).withSelfRel()));
+
+        Link link = linkTo(
+                methodOn(PersonController.class)
+                        .findAll(pageable.getPageNumber(),
+                                pageable.getPageSize(),
+                                "asc")).withSelfRel();
+
+        return assembler.toModel(personVosPage, link);
     }
 
     public BookVO findById(Long id) {

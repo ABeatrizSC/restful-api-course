@@ -32,27 +32,24 @@ public class BookServices {
     BookRepository repository;
 
     @Autowired
-    PagedResourcesAssembler<PersonVO> assembler;
+    PagedResourcesAssembler<BookVO> assembler;
 
-    public PagedModel<EntityModel<PersonVO>> findAll(Pageable pageable) {
+    public PagedModel<EntityModel<BookVO>> findAll(Pageable pageable) {
 
-        logger.info("Finding all people!");
+        logger.info("Finding all books!");
 
-        var personPage = repository.findAll(pageable);
+        var booksPage = repository.findAll(pageable);
 
-        var personVosPage = personPage.map(p -> DozerMapper.parseObject(p, PersonVO.class));
-        personVosPage.map(
-                p -> p.add(
-                        linkTo(methodOn(PersonController.class)
-                                .findById(p.getKey())).withSelfRel()));
+        var booksVOs = booksPage.map(p -> DozerMapper.parseObject(p, BookVO.class));
+        booksVOs.map(p -> p.add(linkTo(methodOn(BookController.class).findById(p.getKey())).withSelfRel()));
 
-        Link link = linkTo(
-                methodOn(PersonController.class)
+        Link findAllLink = linkTo(
+                methodOn(BookController.class)
                         .findAll(pageable.getPageNumber(),
                                 pageable.getPageSize(),
                                 "asc")).withSelfRel();
 
-        return assembler.toModel(personVosPage, link);
+        return assembler.toModel(booksVOs, findAllLink);
     }
 
     public BookVO findById(Long id) {
